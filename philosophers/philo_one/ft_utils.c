@@ -1,95 +1,4 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   ft_utils.c                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: bothilie <marvin@42.fr>                    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2020/02/06 10:34:31 by bothilie          #+#    #+#             */
-/*   Updated: 2020/02/06 11:35:17 by bothilie         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
-#include "philo_one.h"
-
-static unsigned int		ft_len(int nb)
-{
-	unsigned int len;
-
-	len = 0;
-	if (nb == 0)
-		return (1);
-	if (nb < 0)
-	{
-		nb = -nb;
-		len++;
-	}
-	while (nb > 0)
-	{
-		nb = nb / 10;
-		len++;
-	}
-	return (len);
-}
-
-char					*ft_itoa(int n)
-{
-	unsigned int	size;
-	unsigned int	nb;
-	unsigned int	sign;
-	unsigned char	*tab;
-
-	nb = (unsigned int)n;
-	size = ft_len(n);
-	if (n == -2147483648)
-		return (ft_strdup("-2147483648"));
-	if (!(tab = (unsigned char*)malloc(size + 1)))
-		return (NULL);
-	nb = n < 0 ? n * -1 : n * 1;
-	sign = n < 0 ? 1 : 0;
-	while (size > sign)
-	{
-		tab[size - 1] = (nb % 10) + '0';
-		nb = nb / 10;
-		size--;
-	}
-	if (n < 0)
-		tab[0] = '-';
-	tab[ft_len(n)] = '\0';
-	return ((char *)tab);
-}
-
-char	*ft_strdup(const char *s1)
-{
-	unsigned int		i;
-	unsigned int		j;
-	char				*str;
-
-	i = 0;
-	j = 0;
-	while (s1[i] != '\0')
-		i++;
-	str = (char *)malloc((1 + i) * sizeof(char));
-	if (str == NULL)
-		return (NULL);
-	while (j < i)
-	{
-		str[j] = s1[j];
-		j++;
-	}
-	str[j] = '\0';
-	return (str);
-}
-
-size_t	ft_strlen(const char *str)
-{
-	size_t i;
-
-	i = 0;
-	while (str[i])
-		i++;
-	return (i);
-}
+#include "philo_two.h"
 
 int		ft_atoi(const char *str)
 {
@@ -115,4 +24,71 @@ int		ft_atoi(const char *str)
 		i++;
 	}
 	return (r * s);
+}
+
+char	*ft_strjoin(char const *s1, char const *s2)
+{
+	size_t		i;
+	size_t		j;
+	char		*str;
+
+	if (s1 == NULL && s2 == NULL)
+		return (NULL);
+	else if (s1 == NULL)
+		return (ft_strdup(s2));
+	else if (s2 == NULL)
+		return (ft_strdup(s1));
+	str = (char *)malloc(sizeof(char) * (ft_strlen(s1) + ft_strlen(s2) + 1));
+	if (!str)
+		return (NULL);
+	i = -1;
+	while (s1[++i])
+		str[i] = s1[i];
+	j = 0;
+	while (s2[j])
+	{
+		str[i + j] = s2[j];
+		j++;
+	}
+	str[i + j] = '\0';
+	return (str);
+}
+
+size_t	ft_strlen(const char *str)
+{
+	size_t i;
+
+	i = 0;
+	while (str[i])
+		i++;
+	return (i);
+}
+
+char	*ft_strdup(const char *s1)
+{
+	unsigned int		i;
+	unsigned int		j;
+	char				*str;
+
+	i = 0;
+	j = 0;
+	while (s1[i] != '\0')
+		i++;
+	str = (char *)malloc((1 + i) * sizeof(char));
+	if (str == NULL)
+		return (NULL);
+	while (j < i)
+	{
+		str[j] = s1[j];
+		j++;
+	}
+	str[j] = '\0';
+	return (str);
+}
+
+int	ft_isdigit(int c)
+{
+	if (c >= '0' && c <= '9')
+		return (1);
+	return (0);
 }
