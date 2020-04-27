@@ -1,139 +1,114 @@
+
 #include "philo_two.h"
 
 int main(int argc, char **argv)
 {
-    t_arg       *args;
-    t_sem       *sema;
-    t_philo    *philo;
-    int i;
+    t_global    *gl;
+    int         i;
 
     if (argc < 5 || argc > 6)
     {
         write(1, "Not good number of arguments\n", 29);
         return 1;
     }
-    if (!(args = parse_args(argc, argv)) || !(sema = init_sem(args)))
+    gl = get_gl();
+    gl->alive = 1;
+    if (!(gl->args = parse_args(argc, argv)) || !(gl->sema = init_sem(gl->args)))
         return 1;
-    if (!(philo = (t_philo *)malloc(sizeof(t_philo) * args->nb_philo)))
+    gl->num_philo = gl->args->nb_philo;
+    if (init_philos(gl)||!(init_even(gl)) || !(init_odd(gl)))
         return 1;
-    philo = init_philo(philo, sema, args);
-    if (!(init_threads_living(philo)) ||!(init_threads_check(philo)))
+    while(1)
+    {
+        sem_wait(gl->sema->died);
+        if (gl->alive == 0)
+            return(ft_unlink(1));
+        sem_post(gl->sema->died);
+        if (gl->num_philo == 0)
+            break;
+    }
+    write(1, "They all have eaten enough\n", 27);
+    return free_all(gl);
+}
+
+int init_philos(t_global *gl)
+{
+    int i;
+
+    if (!(gl->philo = (t_philo *)malloc(sizeof(t_philo) * gl->args->nb_philo)))
         return 1;
-    free_all(philo);
+    i = -1;
+    while (++i < gl->args->nb_philo)
+    {
+        gl->philo[i].index = i;
+        gl->philo[i].nb_eat = 0;
+        gl->philo[i].start = get_time();
+        gl->philo[i].last_eat = get_time();
+    }
     return 0;
 }
 
-t_philo    *init_philo(t_philo *philo, t_sem *sema, t_arg *args)
+int ft_unlink(int ret)
 {
-    int i;
-    
-    i = -1;
-    struct timeval time;
-    gettimeofday(&time, NULL);
-    while (++i < args->nb_philo)
-    {
-        philo[i].args = args;
-        philo[i].sema = sema;
-        philo[i].index = i + 1;
-        philo[i].alive = 1;
-        philo[i].last_eat = (time.tv_sec *1000 - time.tv_usec / 1000);
-    }
-    return philo;
+    sem_unlink("stdout");
+    sem_unlink("died");
+    sem_unlink("sem_philo");
+    sem_unlink("take");
+    sem_unlink("put");
+    sem_unlink("forks");
+    return ret;
 }
 
-int     free_all(t_philo *philo)
+int     free_all(t_global *gl)
 {
-    int i;
-
-    i = -1;
-    while (++i < philo->args->nb_philo)
-    {
-        pthread_detach(philo[i].living);
-        pthread_detach(philo[i].check);
-    }
-    sem_close(philo->sema->stdout);
-    sem_close(philo->sema->forks);
-    i = -1;
-    while (++i < philo->args->nb_philo)
-        sem_close(philo->sema->sem_philo[i]);
-    free(philo->sema->sem_philo);
-    philo->sema->sem_philo = NULL;
-    free(philo->sema);
-    philo->sema = NULL;
-    free(philo->args);
-    philo->args = NULL;
-    free(philo);
-    philo = NULL;
-    return (0);
+    sem_close(gl->sema->stdout);
+    sem_close(gl->sema->died);
+    sem_close(gl->sema->take);
+    sem_close(gl->sema->put);
+    sem_close(gl->sema->forks);
+    sem_close(gl->sema->sem_philo);
+    free(gl->args);
+    free(gl->sema);
+    free(gl->philo);
+    return (ft_unlink(0));
 }
 
-int init_threads_check(t_philo *philo)
+int init_odd(t_global *gl)
 {
     int i;
-
-    i = -1;
-    while (++i < philo[0].args->nb_philo)
+    i = 1;
+    while (i < gl->args->nb_philo)
     {
-        if(pthread_create(&philo[i].check, NULL, check, &philo[i]))
+        if(pthread_create(&gl->philo[i].living, NULL, living, &gl->philo[i]))
             return 0;
-    }
-    i = -1;
-    while (++i < philo[0].args->nb_philo)
-    {
-        if(pthread_join(philo[i].check, NULL))
+        if (pthread_detach(gl->philo[i].living))
             return 0;
-    }
-    i = -1;
-    while (++i < philo[0].args->nb_philo)
-    {
-        if (pthread_join(philo[i].living, NULL))
+        if(pthread_create(&gl->philo[i].check, NULL, check, &gl->philo[i]))
             return 0;
+        if (pthread_detach(gl->philo[i].check))
+            return 0;
+        i = i +2;
     }
     return 1;
 }
 
-int init_threads_living(t_philo *philo)
+int init_even(t_global *gl)
 {
     int i;
-
-    i = -1;
-    while (++i < philo[0].args->nb_philo)
+    i = 0;
+    while (i < gl->args->nb_philo)
     {
-        if(pthread_create(&philo[i].living, NULL, living, &philo[i]))
+        if(pthread_create(&gl->philo[i].living, NULL, living, &gl->philo[i]))
             return 0;
+        if (pthread_detach(gl->philo[i].living))
+            return 0;
+        if(pthread_create(&gl->philo[i].check, NULL, check, &gl->philo[i]))
+            return 0;
+        if (pthread_detach(gl->philo[i].check))
+            return 0;
+        i = i +2;
     }
     return 1;
-}
-
-int     try_take_fork(t_philo *philo)
-{
-    struct timeval time;
-    sem_wait(philo->sema->forks);
-    print_state(philo, TAKE_FORK);
-    sem_wait(philo->sema->forks);
-    print_state(philo, TAKE_FORK);
-    sem_wait(philo->sema->sem_philo[philo->index]);
-    gettimeofday(&time, NULL);
-    philo->last_eat = (time.tv_sec *1000 + time.tv_usec /1000);
-    print_state(philo, EATING);
-    usleep(philo->args->t_to_sleep * 1000);
-    sem_post(philo->sema->sem_philo[philo->index]);
-    sem_post(philo->sema->forks);
-    sem_post(philo->sema->forks);
-    return 1;
-}
-
-char    *get_status(state etat)
-{
-    if (etat == THINKING)
-        return("thinking");
-    else if (etat == SLEEPING)
-        return ("sleeping");
-    else if (etat == DIED)
-        return ("died");
-    else if (etat == TAKE_FORK)
-        return ("has taken a fork");
-    return ("eating");
 }
 
 

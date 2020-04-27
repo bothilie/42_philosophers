@@ -1,3 +1,5 @@
+
+
 #ifndef PHILO_TWO_H
 #define PHILO_TWO_H
 
@@ -25,39 +27,55 @@ typedef struct  s_args
 typedef struct  s_sem
 {
     sem_t       *stdout;
+    sem_t       *died;
+    sem_t       *take;
+    sem_t       *put;
     sem_t       *forks;
-    sem_t       **sem_philo;
+    sem_t       *sem_philo;
 }               t_sem;
 
 typedef struct  s_philo
 {
-    int         index;
-    t_sem       *sema;
-    t_arg       *args;
-    int         last_eat;
-    int         alive;
+    int                  index;
+    unsigned long         last_eat;
+    unsigned long         start;
     pthread_t   check;
     pthread_t   living;
     int         nb_eat;
 }               t_philo;
 
-t_arg       *parse_args(int argc, char **argv);
-int         ft_atoi(const char *str);
-t_sem       *init_sem(t_arg *args);
-char        *ft_strjoin(char const *s1, char const *s2);
-size_t      ft_strlen(const char *str);
-char        *ft_strdup(const char *s1);
-char        *get_status(state etat);
-int         init_threads_living(t_philo *philo);
-int         init_threads_check(t_philo *philo);
-char        *ft_itoa(int n);
-int         print_state(t_philo *philo, state etat);
-void        *living(void *arg);
-void        *check(void *arg);
-int         ft_isdigit(int c);
-int         try_take_fork(t_philo *philo);
-void        ft_exit_thread(t_philo *philo);
-int         free_all(t_philo *philo);
-t_philo    *init_philo(t_philo *philo, t_sem *sema, t_arg *args);
+typedef struct  s_global
+{
+    t_sem       *sema;
+    t_arg       *args;
+    t_philo     *philo;
+    int         alive;
+    int         num_philo;
+}               t_global;
+
+t_arg           *parse_args(int argc, char **argv);
+int             ft_atoi(const char *str);
+t_sem           *init_sem(t_arg *args);
+char            *ft_strjoin(char const *s1, char const *s2);
+size_t          ft_strlen(const char *str);
+char            *ft_strdup(const char *s1);
+char            *get_status(state etat);
+int             init_threads_living(t_global *global);
+int             init_threads_check(t_global *global);
+char            *ft_itoa(unsigned long n);
+int             print_state(t_philo *philo, state etat);
+void            *living(void *arg);
+void            *check(void *arg);
+int             ft_isdigit(int c);
+int             try_take_fork(t_philo *philo);
+void            ft_exit_thread(t_philo *philo);
+int             free_all(t_global *global);
+t_global        *get_gl();
+unsigned long   get_time();
+int             init_even(t_global *gl);
+int             init_odd(t_global *gl);
+void	        ft_sleeping(int n);
+int             init_philos(t_global *gl);
+int ft_unlink(int ret);
 
 #endif

@@ -4,11 +4,10 @@
 t_arg   *parse_args(int argc, char **argv) //protéger si pas des chiffres
 {
     t_arg   *args;
-
     int i;
     int j;
-    i = 1;
-    while(i < argc)
+    i = 0;
+    while(++i < argc)
     {
         j = 0;
         while(argv[i][j])
@@ -17,7 +16,6 @@ t_arg   *parse_args(int argc, char **argv) //protéger si pas des chiffres
                 return NULL;
             j++;
         }
-        i++;
     }
     if (!(args = (t_arg *)malloc(sizeof(t_arg)))) //MALLOC
         return(0);
@@ -27,5 +25,7 @@ t_arg   *parse_args(int argc, char **argv) //protéger si pas des chiffres
     args->t_to_sleep = ft_atoi(argv[4]);
     if (argc == 6)
         args->nb_eat = ft_atoi(argv[5]);
+    else
+        args->nb_eat = 0;
     return args;
 }

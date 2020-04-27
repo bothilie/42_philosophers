@@ -1,42 +1,31 @@
 #include "philo_two.h"
-#include <string.h>
 
-sem_t   *open_sem(t_arg *args, int i, char *nom, int number)
+sem_t   *init_mutex(int i, char *nom)
 {
     char *tmp;
     char *name;
     sem_t *dest;
-    tmp = ft_itoa(i);
-    name = ft_strjoin(nom, tmp);
-    sem_unlink(name);
-    if (!(dest = sem_open(name, O_CREAT, 0666, number)))
+
+    sem_unlink(nom);
+    if (!(dest = sem_open(nom, O_CREAT, 0666, i)))
         return NULL;
-    free(name);
-    free(tmp);
-    name = NULL;
-    tmp = NULL;
+    free(nom);
     return dest;
 }
 
 t_sem *init_sem(t_arg *args) // Protéger les sema open
 {
     int i;
+    t_sem *lock;
 
     i = -1;
-    t_sem   *sem;
-    if (!(sem = (t_sem *)malloc(sizeof(t_sem))))
+    if (!(lock = (t_sem*)malloc(sizeof(t_sem))))
         return NULL;
-    if (!(sem->stdout = open_sem(args, 1, "stdout", 1)))
-        return NULL;
-    if (!(sem->forks = open_sem(args, 1, "fork", args->nb_philo)))
-        return NULL;
-    if (!(sem->sem_philo = (sem_t **)malloc(sizeof(sem_t) * args->nb_philo)))
-        return NULL;
-    while (++i < args->nb_philo)
-    {
-        if (!(sem->sem_philo[i] = open_sem(args, i, strdup("philo"), 1))) //Strdup
-            return NULL;
-        usleep(150);
-    }
-    return sem;
+    lock->stdout = init_mutex(1, ft_strdup("stdout"));
+    lock->forks = init_mutex(5, ft_strdup("forks"));
+    lock->sem_philo = init_mutex(5, ft_strdup("philo"));
+    lock->put = init_mutex(1, ft_strdup("put"));
+    lock->take = init_mutex(1, ft_strdup("take"));
+    lock->died = init_mutex(1, ft_strdup("died"));
+    return lock;
 }
