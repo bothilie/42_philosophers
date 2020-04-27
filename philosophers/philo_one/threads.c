@@ -1,26 +1,21 @@
-#include "philo_two.h"
-
-void    ft_exit_thread(t_philo *philo)
-{
-    //unlink()
-    pthread_detach(philo->check);
-    pthread_detach(philo->living);
-}
+#include "philo_one.h"
 
 void *living(void *arg)
 {
     t_philo *philo;
     philo = (t_philo*)arg;
-    
-    while(philo->alive)
+    t_global *gl;
+
+    gl = get_gl();
+    while(1)
     {
         print_state(philo, THINKING);
         try_take_fork(philo);
         philo->nb_eat++;
-        if (philo->nb_eat >= philo->args->nb_eat)
-            ft_exit_thread(philo);
+        if (gl->args->nb_eat && philo->nb_eat >= gl->args->nb_eat)
+            break ;
         print_state(philo, SLEEPING);
-        usleep(1000 * philo->args->t_to_sleep);
+        ft_sleeping(gl->args->t_to_sleep);
     }
     return NULL;
 }
@@ -30,21 +25,51 @@ void    *check(void *arg)
 {
     t_philo *philo;
     philo = (t_philo*)arg;
-    struct timeval time;
+    t_global *gl;
 
-    while(philo->alive)
+    gl = get_gl();
+    while(1)
     {
-        pthread_mutex_lock(&philo->sema->sem_philo[philo->index]);
-        gettimeofday(&time, NULL);
-        int interval;
-        interval = (time.tv_sec * 1000 - time.tv_usec / 1000) - philo->last_eat;
-        if (interval > philo->args->t_to_die)
+        pthread_mutex_lock(&gl->sema->sem_philo[philo->index]);
+        if (get_time() - philo->last_eat > (unsigned long)gl->args->t_to_die)
         {
             print_state(philo, DIED);
-            philo->alive = 0;
-            ft_exit_thread(philo);
+            pthread_mutex_lock(&gl->sema->died);
+            gl->alive = 0;
+            pthread_mutex_unlock(&gl->sema->died);
+            break ;
         }
-        pthread_mutex_unlock(&philo->sema->sem_philo[philo->index]);
+        pthread_mutex_unlock(&gl->sema->sem_philo[philo->index]);
+        ft_sleeping(10);
     }
     return NULL;
+}
+
+int     try_take_fork(t_philo *philo)
+{
+    t_global *gl;
+
+    gl = get_gl();
+    pthread_mutex_lock(&gl->sema->take);
+    pthread_mutex_lock(&gl->sema->forks[philo->index]);
+    print_state(philo, TAKE_FORK);
+    pthread_mutex_lock(&gl->sema->forks[(philo->index + 1) % gl->args->nb_philo]);
+    print_state(philo, TAKE_FORK);
+    pthread_mutex_unlock(&gl->sema->take);
+    pthread_mutex_lock(&gl->sema->sem_philo[philo->index]);
+    philo->last_eat = get_time();
+    pthread_mutex_unlock(&gl->sema->sem_philo[philo->index]);
+    print_state(philo, EATING);
+    ft_sleeping(gl->args->t_to_sleep);
+    pthread_mutex_lock(&gl->sema->put);
+    pthread_mutex_unlock(&gl->sema->forks[philo->index]);
+    pthread_mutex_unlock(&gl->sema->forks[(philo->index + 1) % gl->args->nb_philo]);
+    pthread_mutex_unlock(&gl->sema->put);
+    return 1;
+}
+
+t_global    *get_gl()
+{
+    static t_global gl;
+    return (&gl);
 }
