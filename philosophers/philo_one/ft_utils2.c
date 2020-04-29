@@ -6,7 +6,7 @@
 /*   By: bothilie <bothilie@stduent.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/04/28 11:39:06 by bothilie          #+#    #+#             */
-/*   Updated: 2020/04/29 13:45:26 by bothilie         ###   ########.fr       */
+/*   Updated: 2020/04/29 14:46:33 by bothilie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,7 +71,7 @@ void				ft_sleeping(int n)
 	while (1)
 	{
 		passed = get_time() - start;
-		if (passed > n)
+		if (passed > (unsigned long)n)
 			break ;
 		usleep(1);
 	}

@@ -6,7 +6,7 @@
 /*   By: bothilie <bothilie@stduent.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/04/07 13:47:42 by bothilie          #+#    #+#             */
-/*   Updated: 2020/04/29 13:25:18 by bothilie         ###   ########.fr       */
+/*   Updated: 2020/04/29 14:46:07 by bothilie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,12 +60,12 @@ int			free_all(t_global *gl, int ret)
 {
 	int i;
 
+	i = -1;
 	pthread_mutex_destroy(&gl->sema->stdout);
 	pthread_mutex_destroy(&gl->sema->died);
 	pthread_mutex_destroy(&gl->sema->take);
 	pthread_mutex_destroy(&gl->sema->put);
 	pthread_mutex_destroy(&gl->sema->forks[i]);
-	i = -1;
 	while (++i < gl->args->nb_philo)
 		pthread_mutex_destroy(&gl->sema->sem_philo[i]);
 	free(gl->sema->sem_philo);
