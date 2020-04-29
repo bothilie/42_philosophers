@@ -15,7 +15,6 @@
 int			main(int argc, char **argv)
 {
 	t_global	*gl;
-	int			i;
 
 	if (argc < 5 || argc > 6)
 		return (print_error("Not good number of arguments\n"));

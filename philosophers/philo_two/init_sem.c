@@ -24,10 +24,8 @@ sem_t		*init_mutex(int i, char *nom)
 
 t_sem		*init_sem(t_arg *args)
 {
-	int		i;
 	t_sem	*lock;
 
-	i = -1;
 	if (!(lock = (t_sem*)malloc(sizeof(t_sem))))
 		return (NULL);
 	if (!(lock->sem_philo = init_mutex(args->nb_philo, "philo")))

@@ -19,11 +19,6 @@ static int			ft_len(unsigned long nb)
 	len = 0;
 	if (nb == 0)
 		return (1);
-	if (nb < 0)
-	{
-		nb = -nb;
-		len++;
-	}
 	while (nb > 0)
 	{
 		nb = nb / 10;
@@ -71,7 +66,7 @@ void				ft_sleeping(int n)
 	while (1)
 	{
 		passed = get_time() - start;
-		if (passed > n)
+		if (passed > (unsigned long)n)
 			break ;
 		usleep(1);
 	}

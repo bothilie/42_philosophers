@@ -19,6 +19,7 @@
 # include <stdlib.h>
 # include <pthread.h>
 # include <sys/time.h>
+# include <fcntl.h>
 
 typedef enum {
 	THINKING, EATING, HUNGRY, SLEEPING, DIED, TAKE_FORK

@@ -66,9 +66,6 @@ void		print_state(t_philo *philo, t_state etat)
 
 int			print_error(char *str)
 {
-	t_global *gl;
-
-	gl = get_gl();
 	write(2, str, ft_strlen(str));
 	return (2);
 }
