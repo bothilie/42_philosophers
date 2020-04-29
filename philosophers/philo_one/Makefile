@@ -17,7 +17,7 @@ NAME = philo_one
 all: $(NAME)
 
 $(NAME): 
-	gcc -Wall -Wextra -Werror $(SRC) -o $(NAME)
+	gcc -Wall -Wextra -Werror $(SRC) -o $(NAME) -l pthread
 	@echo "Done."
 
 clean:

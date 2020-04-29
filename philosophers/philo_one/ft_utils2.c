@@ -19,11 +19,6 @@ static int			ft_len(unsigned long nb)
 	len = 0;
 	if (nb == 0)
 		return (1);
-	if (nb < 0)
-	{
-		nb = -nb;
-		len++;
-	}
 	while (nb > 0)
 	{
 		nb = nb / 10;

@@ -30,7 +30,7 @@ t_sem		*init_sem(t_arg *args)
 	i = -1;
 	if (!(lock = (t_sem*)malloc(sizeof(t_sem))))
 		return (NULL);
-	if (!(lock->sem_philo = init_mutex(5, "philo")))
+	if (!(lock->sem_philo = init_mutex(args->nb_philo, "philo")))
 		return (NULL);
 	if (!(lock->put = init_mutex(1, "put")))
 		return (NULL);
@@ -40,7 +40,7 @@ t_sem		*init_sem(t_arg *args)
 		return (NULL);
 	if (!(lock->stdout = init_mutex(1, "stdout")))
 		return (NULL);
-	if (!(lock->forks = init_mutex(5, "forks")))
+	if (!(lock->forks = init_mutex(args->nb_philo, "forks")))
 		return (NULL);
 	return (lock);
 }
