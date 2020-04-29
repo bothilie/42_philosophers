@@ -1,100 +1,105 @@
-#include "philo_two.h"
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: bothilie <bothilie@stduent.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/04/27 15:39:01 by bothilie          #+#    #+#             */
+/*   Updated: 2020/04/28 12:30:29 by bothilie         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-int main(int argc, char **argv)
+#include "philo_three.h"
+
+int				main(int argc, char **argv)
 {
-    t_arg   *args;
-    t_sem *sema;
-    t_philo    *philo;
-    int i;
+	t_global	*gl;
+	int			ret;
 
-    if (argc < 5 || argc > 6)
-    {
-        write(1, "Not good number of arguments\n", 29);
-        return 1;
-    }
-    if (!(args = parse_args(argc, argv)) || !(sema = init_sem(args)))
-        return 1;
-    if (!(philo = (t_philo *)malloc(sizeof(t_philo) * args->nb_philo)))
-        return 1;
-    i = 0;
-    struct timeval time;
-    gettimeofday(&time, NULL);
-    while (i < args->nb_philo)
-    {
-        philo[i].args = args;
-        philo[i].sema = sema;
-        philo[i].index = i + 1;
-        philo[i].alive = 1;
-        philo[i].nb_eat = 0;
-        philo[i].last_eat = (time.tv_sec *1000 - time.tv_usec / 1000);
-        i++;
-    }
-    if (!(init_threads_living(philo)))
-            return 1;
-    free_all(philo);
-    return 0;
+	if (argc < 5 || argc > 6)
+	{
+		write(1, "Not good number of arguments\n", 29);
+		return (1);
+	}
+	gl = get_gl();
+	gl->alive = 1;
+	if (!(gl->args = parse_args(argc, argv)))
+		return (1);
+	if (!(gl->sema = init_sem(gl->args)) || init_philos(gl))
+		return (1);
+	gl->num_philo = gl->args->nb_philo;
+	if (!(ret = init_threads_living(gl)))
+		return (1);
+	if (ret == 2)
+		return (ft_unlink(1));
+	write(1, "They all have eaten enough\n", 27);
+	return (free_all(gl));
 }
 
-int     free_all(t_philo *philo)
+int				init_philos(t_global *gl)
 {
-    int i;
+	int i;
 
-    sem_close(philo->sema->stdout);
-    sem_close(philo->sema->forks);
-    i = -1;
-    while (++i < philo->args->nb_philo)
-        sem_close(philo->sema->sem_philo[i]);
-    free(philo->sema->sem_philo);
-    free(philo->sema);
-    free(philo->args);
-    free(philo);
-    return (0);
+	if (!(gl->philo = (t_philo *)malloc(sizeof(t_philo) * gl->args->nb_philo)))
+		return (1);
+	i = -1;
+	while (++i < gl->args->nb_philo)
+	{
+		gl->philo[i].index = i;
+		gl->philo[i].nb_eat = 0;
+		gl->philo[i].start = get_time();
+		gl->philo[i].last_eat = get_time();
+	}
+	return (0);
 }
 
-
-int init_threads_living(t_philo *philo)
+int				ft_unlink(int ret)
 {
-   int i;
-   int status;
-   
-   i = 0;
-   while (i < philo[0].args->nb_philo)
-    {
-        if(!(philo[i].living = fork()))
-            living(&philo[i]);
-        i++;
-    }
-    status = 0;
-    i = 0;
-    if (waitpid(-1, &status, 0) <0 || WIFEXITED(status))
-    {
-        while (i < philo->args->nb_philo)
-        {
-            kill(philo[i].living, SIGINT);
-            i++;
-        }
-    }
-    return 1;
+	sem_unlink("stdout");
+	sem_unlink("died");
+	sem_unlink("sem_philo");
+	sem_unlink("take");
+	sem_unlink("put");
+	sem_unlink("forks");
+	return (ret);
 }
 
-int     try_take_fork(t_philo *philo)
+int				free_all(t_global *gl)
 {
-    struct timeval time;
-    sem_wait(philo->sema->forks);
-    print_state(philo, TAKE_FORK);
-    sem_wait(philo->sema->forks);
-    print_state(philo, TAKE_FORK);
-    sem_wait(philo->sema->sem_philo[philo->index]);
-    gettimeofday(&time, NULL);
-    philo->last_eat = (time.tv_sec *1000 + time.tv_usec /1000);
-    print_state(philo, EATING);
-    usleep(philo->args->t_to_sleep * 1000);
-    sem_post(philo->sema->sem_philo[philo->index]);
-    sem_post(philo->sema->forks);
-    sem_post(philo->sema->forks);
-    return 1;
+	if (sem_close(gl->sema->stdout) == -1 || sem_close(gl->sema->died) == -1\
+		|| sem_close(gl->sema->take) == -1 || sem_close(gl->sema->put) == -1\
+	|| sem_close(gl->sema->forks) == -1 || sem_close(gl->sema->sem_philo) == -1)
+		print_error("error : sem_close\n");
+	free(gl->args);
+	free(gl->sema);
+	free(gl->philo);
+	return (ft_unlink(0));
 }
 
+int				init_threads_living(t_global *gl)
+{
+	int i;
+	int status;
 
-
-
+	init_even(gl);
+	init_odd(gl);
+	status = 0;
+	i = 0;
+	while (waitpid(-1, &status, 0) > 0)
+	{
+		if (WIFEXITED(status) && (status == 512 || status == 768))
+		{
+			while (i++ < gl->args->nb_philo)
+				kill(gl->philo[i].living, SIGINT);
+			return (2);
+		}
+		else if (WIFEXITED(status) && status == 256)
+		{
+			gl->num_philo--;
+			if (gl->num_philo == 0)
+				return (1);
+		}
+	}
+	return (0);
+}

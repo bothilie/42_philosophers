@@ -1,6 +1,18 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ft_utils2.c                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: bothilie <bothilie@stduent.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/04/28 11:39:06 by bothilie          #+#    #+#             */
+/*   Updated: 2020/04/28 11:55:42 by bothilie         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "philo_two.h"
 
-static int		ft_len(unsigned long nb)
+static int			ft_len(unsigned long nb)
 {
 	unsigned long len;
 
@@ -20,11 +32,11 @@ static int		ft_len(unsigned long nb)
 	return (len);
 }
 
-char					*ft_itoa(unsigned long n)
+char				*ft_itoa(unsigned long n)
 {
 	unsigned int	size;
 	unsigned int	i;
-	char	*tab;
+	char			*tab;
 
 	size = ft_len(n);
 	i = 0;
@@ -41,26 +53,33 @@ char					*ft_itoa(unsigned long n)
 	return ((char *)tab);
 }
 
-unsigned long get_time()
+unsigned long		get_time(void)
 {
 	struct timeval tv;
 
 	if (gettimeofday(&tv, NULL))
-		return 0;
+		return (0);
 	return (tv.tv_sec * 1000 + tv.tv_usec / 1000);
 }
 
-void	ft_sleeping(int n)
+void				ft_sleeping(int n)
 {
 	unsigned long start;
 	unsigned long passed;
-	
+
 	start = get_time();
 	while (1)
 	{
 		passed = get_time() - start;
 		if (passed > n)
-			break;
+			break ;
 		usleep(1);
 	}
+}
+
+t_global			*get_gl(void)
+{
+	static t_global gl;
+
+	return (&gl);
 }

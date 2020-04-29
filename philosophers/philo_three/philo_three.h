@@ -1,17 +1,17 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   philo_one.h                                        :+:      :+:    :+:   */
+/*   philo_three.h                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: bothilie <bothilie@stduent.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/04/27 15:38:34 by bothilie          #+#    #+#             */
-/*   Updated: 2020/04/29 13:45:55 by bothilie         ###   ########.fr       */
+/*   Updated: 2020/04/29 13:54:07 by bothilie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef PHILO_ONE_H
-# define PHILO_ONE_H
+#ifndef PHILO_THREE_H
+# define PHILO_THREE_H
 
 # include <semaphore.h>
 # include <stdio.h>
@@ -19,6 +19,8 @@
 # include <stdlib.h>
 # include <pthread.h>
 # include <sys/time.h>
+# include <sys/types.h>
+# include <signal.h>
 
 typedef enum {
 	THINKING, EATING, HUNGRY, SLEEPING, DIED, TAKE_FORK
@@ -35,12 +37,12 @@ typedef struct	s_args
 
 typedef struct	s_sem
 {
-	pthread_mutex_t			stdout;
-	pthread_mutex_t			died;
-	pthread_mutex_t			take;
-	pthread_mutex_t			put;
-	pthread_mutex_t			*forks;
-	pthread_mutex_t			*sem_philo;
+	sem_t			*stdout;
+	sem_t			*died;
+	sem_t			*take;
+	sem_t			*put;
+	sem_t			*forks;
+	sem_t			*sem_philo;
 }				t_sem;
 
 typedef struct	s_philo
@@ -49,7 +51,7 @@ typedef struct	s_philo
 	unsigned long		last_eat;
 	unsigned long		start;
 	pthread_t			check;
-	pthread_t			living;
+	int					living;
 	int					nb_eat;
 }				t_philo;
 
@@ -72,19 +74,20 @@ char			*get_status(t_state etat);
 int				init_threads_living(t_global *global);
 int				init_threads_check(t_global *global);
 char			*ft_itoa(unsigned long n);
-int				print_state(t_philo *philo, t_state etat);
-void			*living(void *arg);
+void			print_state(t_philo *philo, t_state etat);
+void			*living(t_philo *arg);
 void			*check(void *arg);
 int				ft_isdigit(int c);
-int				try_take_fork(t_philo *philo);
+int				try_take_fork(t_philo *philo, t_global *global);
 void			ft_exit_thread(t_philo *philo);
-int				free_all(t_global *global, int ret);
+int				free_all(t_global *global);
 t_global		*get_gl();
 unsigned long	get_time();
 int				init_even(t_global *gl);
 int				init_odd(t_global *gl);
 void			ft_sleeping(int n);
 int				init_philos(t_global *gl);
-int				print_error(char *str);
+void			print_error(char *str);
+int				ft_unlink(int ret);
 
 #endif

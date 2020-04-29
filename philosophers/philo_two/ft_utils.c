@@ -1,6 +1,18 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ft_utils.c                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: bothilie <bothilie@stduent.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/04/28 11:38:00 by bothilie          #+#    #+#             */
+/*   Updated: 2020/04/28 11:38:44 by bothilie         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "philo_two.h"
 
-int		ft_atoi(const char *str)
+int			ft_atoi(const char *str)
 {
 	int				i;
 	long			r;
@@ -26,7 +38,7 @@ int		ft_atoi(const char *str)
 	return (r * s);
 }
 
-char	*ft_strjoin(char const *s1, char const *s2)
+char		*ft_strjoin(char const *s1, char const *s2)
 {
 	size_t		i;
 	size_t		j;
@@ -54,7 +66,7 @@ char	*ft_strjoin(char const *s1, char const *s2)
 	return (str);
 }
 
-size_t	ft_strlen(const char *str)
+size_t		ft_strlen(const char *str)
 {
 	size_t i;
 
@@ -64,7 +76,7 @@ size_t	ft_strlen(const char *str)
 	return (i);
 }
 
-char	*ft_strdup(const char *s1)
+char		*ft_strdup(const char *s1)
 {
 	unsigned int		i;
 	unsigned int		j;
@@ -86,7 +98,7 @@ char	*ft_strdup(const char *s1)
 	return (str);
 }
 
-int	ft_isdigit(int c)
+int			ft_isdigit(int c)
 {
 	if (c >= '0' && c <= '9')
 		return (1);

@@ -1,36 +1,74 @@
-#include "philo_two.h"
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   print_state.c                                      :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: bothilie <bothilie@stduent.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/04/27 15:39:09 by bothilie          #+#    #+#             */
+/*   Updated: 2020/04/29 13:53:48 by bothilie         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-char    *get_status(state etat)
+#include "philo_three.h"
+
+char			*get_status(t_state etat)
 {
-    if (etat == THINKING)
-        return("thinking");
-    else if (etat == SLEEPING)
-        return ("sleeping");
-    else if (etat == DIED)
-        return ("died");
-    else if (etat == TAKE_FORK)
-        return ("has taken a fork");
-    return ("eating");
+	if (etat == THINKING)
+		return (" is thinking");
+	else if (etat == SLEEPING)
+		return (" is sleeping");
+	else if (etat == DIED)
+		return (" died");
+	else if (etat == TAKE_FORK)
+		return (" has taken a fork ");
+	return (" is eating ");
 }
 
-int     print_state(t_philo *philo, state etat)
+void			print_state_2(t_philo *philo)
 {
-    
-    struct timeval time;
-    gettimeofday(&time, NULL);
-    sem_wait(philo->sema->stdout);
-    char *index;
-    index = ft_itoa(time.tv_sec * 1000 + time.tv_usec / 1000);
-    free(index);
-    write(1, index, ft_strlen(index));
-    index = ft_itoa(philo->index);
-    free(index);
-    write(1, " philo ", 7);
-    write(1, index, ft_strlen(index));
-    write(1, " is ", 4);
-    char *str_etat = get_status(etat);
-    write(1, str_etat, ft_strlen(str_etat));
-    write(1, "\n", 1);
-    sem_post(philo->sema->stdout);
-    return 0;
+	char *index;
+
+	index = ft_itoa(get_time() - philo->start);
+	write(1, index, ft_strlen(index));
+	free(index);
+	index = ft_itoa(philo->index + 1);
+	write(1, " philo ", 7);
+	write(1, index, ft_strlen(index));
+	free(index);
+}
+
+void			print_state(t_philo *philo, t_state etat)
+{
+	t_global	*gl;
+	char		*index;
+
+	gl = get_gl();
+	if (sem_wait(gl->sema->stdout) == -1)
+		print_error("error : sem_wait\n");
+	if (sem_wait(gl->sema->died) == -1)
+		print_error("error : sem_wait\n");
+	if (gl->alive == 0)
+	{
+		if (sem_post(gl->sema->died) == -1)
+			print_error("error : sem_post\n");
+		return ;
+	}
+	if (sem_post(gl->sema->died) == -1)
+		print_error("error : sem_post\n");
+	print_state_2(philo);
+	index = get_status(etat);
+	write(1, index, ft_strlen(index));
+	write(1, "\n", 1);
+	if (sem_post(gl->sema->stdout) == -1)
+		print_error("error : sem_post\n");
+}
+
+void			print_error(char *str)
+{
+	t_global *gl;
+
+	gl = get_gl();
+	write(2, str, ft_strlen(str));
+	exit(3);
 }

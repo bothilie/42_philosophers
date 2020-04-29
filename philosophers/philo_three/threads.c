@@ -1,50 +1,119 @@
-#include "philo_two.h"
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   threads.c                                          :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: bothilie <bothilie@stduent.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/04/27 15:39:07 by bothilie          #+#    #+#             */
+/*   Updated: 2020/04/28 12:32:48 by bothilie         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-void    ft_exit_thread(t_philo *philo)
+#include "philo_three.h"
+
+void			*living(t_philo *arg)
 {
-    pthread_detach(philo->check);
-    exit(0);
+	t_philo		*philo;
+	t_global	*gl;
+
+	gl = get_gl();
+	philo = (t_philo*)arg;
+	if (pthread_create(&philo->check, NULL, check, philo))
+		exit(0);
+	if (pthread_detach(philo->check))
+		exit(0);
+	while (1)
+	{
+		print_state(philo, THINKING);
+		try_take_fork(philo, gl);
+		philo->nb_eat++;
+		if (philo->nb_eat >= gl->args->nb_eat && gl->args->nb_eat)
+			exit(1);
+		print_state(philo, SLEEPING);
+		usleep(1000 * gl->args->t_to_sleep);
+	}
 }
 
-void *living(t_philo *arg)
+void			*check(void *arg)
 {
-    t_philo *philo;
-    philo = (t_philo*)arg;
-    if (pthread_create(&philo->check, NULL, check, philo))
-        return NULL;
-    while(philo->alive)
-    {
-        print_state(philo, THINKING);
-        try_take_fork(philo);
-        philo->nb_eat++;
-        if (philo->nb_eat >= philo->args->nb_eat && philo->args->nb_eat)
-            ft_exit_thread(philo);
-        print_state(philo, SLEEPING);
-        usleep(1000 * philo->args->t_to_sleep);
-    }
-    return NULL;
+	t_philo		*philo;
+	t_global	*gl;
+
+	gl = get_gl();
+	philo = (t_philo*)arg;
+	while (1)
+	{
+		if (sem_wait(gl->sema->sem_philo) == -1)
+			print_error("error : sem_wait\n");
+		if (get_time() - philo->last_eat > (unsigned long)gl->args->t_to_die)
+		{
+			print_state(philo, DIED);
+			if (sem_wait(gl->sema->died) == -1)
+				print_error("error : sem_wait\n");
+			gl->alive = 0;
+			if (sem_post(gl->sema->died) == -1)
+				print_error("error : sem_post\n");
+			exit(2);
+		}
+		if (sem_post(gl->sema->sem_philo) == -1)
+			print_error("error : sem_post\n");
+		ft_sleeping(10);
+	}
 }
 
-
-void    *check(void *arg)
+int				try_take_fork(t_philo *philo, t_global *gl)
 {
-    t_philo *philo;
-    philo = (t_philo*)arg;
-    struct timeval time;
+	if (sem_wait(gl->sema->take) == -1)
+		print_error("error : sem_wait\n");
+	if (sem_wait(gl->sema->forks) == -1)
+		print_error("error : sem_wait\n");
+	print_state(philo, TAKE_FORK);
+	if (sem_wait(gl->sema->forks) == -1)
+		print_error("error : sem_wait\n");
+	print_state(philo, TAKE_FORK);
+	if (sem_post(gl->sema->take) == -1)
+		print_error("error : sem_post\n");
+	if (sem_wait(gl->sema->sem_philo) == -1)
+		print_error("error : sem_wait\n");
+	philo->last_eat = get_time();
+	if (sem_post(gl->sema->sem_philo) == -1)
+		print_error("error : sem_post\n");
+	print_state(philo, EATING);
+	ft_sleeping(gl->args->t_to_sleep);
+	if (sem_wait(gl->sema->put) == -1)
+		print_error("error : sem_wait\n");
+	if (sem_post(gl->sema->forks) == -1 || sem_post(gl->sema->forks) == -1)
+		print_error("error : sem_post\n");
+	if (sem_post(gl->sema->put) == -1)
+		print_error("error : sem_post\n");
+	return (1);
+}
 
-    while(1)
-    {
-        sem_wait(philo->sema->sem_philo[philo->index]);
-        gettimeofday(&time, NULL);
-        int interval;
-        interval = (time.tv_sec * 1000 - time.tv_usec / 1000) - philo->last_eat;
-        if (interval > philo->args->t_to_die)
-        {
-            print_state(philo, DIED);
-            philo->alive = 0;
-            exit(0);
-        }
-        sem_post(philo->sema->sem_philo[philo->index]);
-    }
-    return NULL;
+int				init_even(t_global *gl)
+{
+	int i;
+
+	i = 0;
+	while (i < gl->args->nb_philo)
+	{
+		if (!(gl->philo[i].living = fork()))
+			living(&gl->philo[i]);
+		i = i + 2;
+	}
+	return (0);
+}
+
+int				init_odd(t_global *gl)
+{
+	int i;
+
+	i = 1;
+	while (i < gl->args->nb_philo)
+	{
+		if (!(gl->philo[i].living = fork()))
+			living(&gl->philo[i]);
+		i = i + 2;
+	}
+	return (0);
 }
