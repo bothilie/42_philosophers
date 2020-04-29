@@ -11,13 +11,13 @@
 #                                                                              #
 # **************************************************************************** #
 
-SRC= main.c ft_utils.c init_sem.c parse_args.c print_state.c ft_utils2.c threads.c
+SRC= ft_utils.c init_sem.c parse_args.c print_state.c ft_utils2.c threads.c main.c
 NAME = philo_one
 
 all: $(NAME)
 
 $(NAME): 
-	gcc  $(SRC) -o $(NAME)
+	gcc -Wall -Wextra -Werror -lpthread $(SRC) -o $(NAME)
 	@echo "Done."
 
 clean:
