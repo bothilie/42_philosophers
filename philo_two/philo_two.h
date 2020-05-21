@@ -19,6 +19,7 @@
 # include <stdlib.h>
 # include <pthread.h>
 # include <sys/time.h>
+# include <fcntl.h>
 
 typedef enum {
 	THINKING, EATING, HUNGRY, SLEEPING, DIED, TAKE_FORK
@@ -75,7 +76,6 @@ void			print_state(t_philo *philo, t_state etat);
 void			*living(void *arg);
 void			*check(void *arg);
 int				ft_isdigit(int c);
-static int		try_take_fork(t_philo *philo, t_global *global);
 void			ft_exit_thread(t_philo *philo);
 int				free_all(t_global *global);
 t_global		*get_gl();

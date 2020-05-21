@@ -22,6 +22,7 @@
 # include <sys/types.h>
 # include <signal.h>
 # include <sys/wait.h>
+# include <fcntl.h>
 
 typedef enum {
 	THINKING, EATING, HUNGRY, SLEEPING, DIED, TAKE_FORK

@@ -25,19 +25,14 @@ static char		*get_status(t_state etat)
 	return ft_strdup((" is eating\n"));
 }
 
-int			print_state(t_philo *philo, t_state etat)
+static char		*get_str(t_philo *philo, char *status)
 {
-	t_global	*gl;
 	char		*index;
 	char		*time;
-	char 		*status;
 	char		*str;
 	char 		*tmp;
 	char 		*ph;
 
-	gl = get_gl();
-	status = get_status(etat);
-	pthread_mutex_lock(&gl->sema->stdout);
 	time = ft_itoa(get_time() - philo->start);
 	ph = " philo ";
 	index = ft_itoa(philo->index + 1);
@@ -45,20 +40,33 @@ int			print_state(t_philo *philo, t_state etat)
 	str = ft_strjoin(tmp, index);
 	free (tmp);
 	tmp = ft_strjoin(str, status);
+			 free(time);
+		free(index);
+		free(status);
+	return tmp;
+}
+
+
+int			print_state(t_philo *philo, t_state etat)
+{
+	t_global	*gl;
+	char		*str;
+	char 		*status;
+
+	status = get_status(etat);
+	gl = get_gl();
+	str = get_str(philo, status);
 	pthread_mutex_lock(&gl->sema->died);
 	if (gl->alive == 0)
 	{
 		pthread_mutex_unlock(&gl->sema->died);
-		free(tmp);
+		free(str);
 		return (1);
 	}
 	pthread_mutex_unlock(&gl->sema->died);
-	write(1, tmp, ft_strlen(tmp));
-	pthread_mutex_unlock(&gl->sema->stdout);
-	free(time);
-	free(index);
-	free(status);
-	free(tmp);
+	write(1, str, ft_strlen(str));
+	if (gl->alive)
+		pthread_mutex_unlock(&gl->sema->stdout);
 	free(str);
 	return (0);
 }

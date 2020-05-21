@@ -43,7 +43,7 @@ static int				try_take_fork(t_philo *philo)
 	philo->last_eat = get_time();
 	pthread_mutex_unlock(&gl->sema->sem_philo[philo->index]);
 	print_state(philo, EATING);
-	ft_sleeping(gl->args->t_to_sleep);
+	ft_sleeping(gl->args->t_to_eat);
 	pthread_mutex_lock(&gl->sema->put);
 	pthread_mutex_unlock(&gl->sema->forks[philo->index]);
 	pthread_mutex_unlock(&gl->sema->forks[(philo->index + 1)\

@@ -45,7 +45,7 @@ static int				try_take_fork(t_philo *philo, t_global *gl)
 	if (sem_post(gl->sema->sem_philo) == -1)
 		print_error("error : sem_post\n");
 	print_state(philo, EATING);
-	ft_sleeping(gl->args->t_to_sleep);
+	ft_sleeping(gl->args->t_to_eat);
 	if (sem_wait(gl->sema->put) == -1)
 		print_error("error : sem_wait\n");
 	if (sem_post(gl->sema->forks) == -1 || sem_post(gl->sema->forks) == -1)
